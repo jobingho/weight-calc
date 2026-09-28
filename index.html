@@ -52,7 +52,7 @@
   }
   .field {
     display: block;
-    flex: 1 1 200px;
+    flex: 1 1 150px;
   }
   .field label {
     display: block;
@@ -150,7 +150,7 @@
 </head>
 <body>
   <h1>重量计算器</h1>
-  <p class="sub">每行独立计算 · 单位自动换算（超过 100 视为克）</p>
+  <p class="sub">每行独立计算 · 原料总重 ÷ 每份重量 = 可做出多少包</p>
 
   <div id="rows"></div>
 
@@ -178,28 +178,34 @@
   function calculate(row) {
     var nEl = row.querySelector('.pkg-count');
     var wEl = row.querySelector('.pkg-weight');
+    var pEl = row.querySelector('.per-weight');
     var resEl = row.querySelector('.result');
 
     var n = parseFloat(nEl.value);
     var w = parseFloat(wEl.value);
+    var p = parseFloat(pEl.value);
 
-    if (isNaN(n) || isNaN(w) || n < 0 || w < 0) {
+    if (isNaN(n) || isNaN(w) || isNaN(p) || n < 0 || w < 0 || p <= 0) {
       resEl.className = 'result hint';
-      resEl.innerHTML = '请先填写正确的包数和重量';
+      resEl.innerHTML = '请先填写正确的包数、重量和每份产品重量';
       return;
     }
 
     // 每包重量 > 100 时，自动当作克（g），换算成千克
     var wKg = (w > 100) ? (w / 1000) : w;
-    var total = n * wKg;
+    // 原料总重 = 包数 × 每包重量（kg）
+    var rawTotal = n * wKg;
+    // 可做出的产品包数 = 向下取整(原料总重 ÷ 每份产品重量)，加 1e-9 抵消浮点误差导致的边界偏差
+    var packs = Math.floor(rawTotal / p + 1e-9);
 
     resEl.className = 'result';
-    resEl.innerHTML = fmt(total) + '<span class="unit">kg</span>';
+    resEl.innerHTML = fmt(packs) + '<span class="unit">包</span>';
   }
 
   function clearRow(row) {
     row.querySelector('.pkg-count').value = '';
     row.querySelector('.pkg-weight').value = '';
+    row.querySelector('.per-weight').value = '';
     var resEl = row.querySelector('.result');
     resEl.className = 'result';
     resEl.innerHTML = '';
@@ -220,6 +226,10 @@
         '<div class="field">' +
           '<label for="w' + i + '">每包重量</label>' +
           '<input id="w' + i + '" class="pkg-weight" type="text" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" enterkeyhint="done" placeholder="例如 2.5 或 150" oninput="filterNum(event)">' +
+        '</div>' +
+        '<div class="field">' +
+          '<label for="p' + i + '">每份产品重量</label>' +
+          '<input id="p' + i + '" class="per-weight" type="text" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" enterkeyhint="done" placeholder="例如 0.5" oninput="filterNum(event)">' +
         '</div>' +
         '<div class="btn-group">' +
           '<button class="calc-btn" type="button">计算</button>' +
