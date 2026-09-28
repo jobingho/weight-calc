@@ -60,7 +60,7 @@
     font-weight: 600;
     margin-bottom: 8px;
   }
-  input[type="number"] {
+  input {
     width: 100%;
     font-size: 28px;
     padding: 14px 16px;
@@ -69,7 +69,7 @@
     background: #fff;
     color: #1a1a1a;
   }
-  input[type="number"]:focus {
+  input:focus {
     outline: none;
     border-color: #2f6fed;
     box-shadow: 0 0 0 3px rgba(47,111,237,0.15);
@@ -147,6 +147,17 @@
   <footer>填写「包数」与「每包重量」，点「计算」即可得出该行重量（kg）</footer>
 
 <script>
+  // 仅允许输入数字和一个小数点，避免老人误输字母导致计算异常
+  function filterNum(e) {
+    var el = e.target;
+    var v = el.value.replace(/[^\d.]/g, '');
+    var dot = v.indexOf('.');
+    if (dot !== -1) {
+      v = v.slice(0, dot + 1) + v.slice(dot + 1).replace(/\./g, '');
+    }
+    el.value = v;
+  }
+
   // 显示全部小数位：先清除浮点误差（保留到 10 位小数），再去末尾多余的 0，不人为四舍五入
   function fmt(num) {
     if (!isFinite(num)) return '0';
@@ -194,11 +205,11 @@
       '<div class="inputs">' +
         '<div class="field">' +
           '<label for="n' + i + '">包数（共几包）</label>' +
-          '<input id="n' + i + '" class="pkg-count" type="number" inputmode="numeric" min="0" step="1" placeholder="例如 12">' +
+          '<input id="n' + i + '" class="pkg-count" type="text" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" enterkeyhint="done" placeholder="例如 12" oninput="filterNum(event)">' +
         '</div>' +
         '<div class="field">' +
           '<label for="w' + i + '">每包重量</label>' +
-          '<input id="w' + i + '" class="pkg-weight" type="number" inputmode="decimal" min="0" step="any" placeholder="例如 2.5 或 150">' +
+          '<input id="w' + i + '" class="pkg-weight" type="text" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" enterkeyhint="done" placeholder="例如 2.5 或 150" oninput="filterNum(event)">' +
         '</div>' +
         '<div class="btn-group">' +
           '<button class="calc-btn" type="button">计算</button>' +
